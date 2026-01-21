@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'accounts',
 ]
 
@@ -135,3 +134,17 @@ DAILY_API_KEY = "3f176e1ba53395d25ff899af893e7a76a35fbbd49fe22aa9915edec6d8b36d7
 DAILY_SUBDOMAIN = "salah-online"
 
 
+# core/settings.py
+
+# 1. Allow Ngrok to serve your site
+ALLOWED_HOSTS = ['*'] 
+
+# 2. Trust the Ngrok domain for Login/Forms (Crucial for Django 4.0+)
+# core/settings.py
+
+# Trust requests coming from Ngrok
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.ngrok-free.app",
+    "https://*.ngrok-free.dev",
+    "https://127.0.0.1"
+]
