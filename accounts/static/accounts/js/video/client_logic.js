@@ -151,8 +151,8 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function calculateCost() {
-        const FIXED_FEE = 20;     // The fixed "Base Charge"
-        const FREE_SECONDS = 120;  // 2 Minutes Trial
+        const FIXED_FEE = 30;     // The fixed "Base Charge"
+        const FREE_SECONDS = 20;  // 2 Minutes Trial
 
         // 1. Calculate billable time (Total time minus the 2 free minutes)
         // If seconds is 60, result is 0. If seconds is 130, result is 10.

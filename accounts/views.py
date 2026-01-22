@@ -340,7 +340,7 @@ def join_room(request, room_id):
             "room_url": daily_url,
             "session_id": room_id,
             "balance": request.user.wallet.balance, 
-            "rate": 100 
+            "rate": 20 
         }
         
     else:
