@@ -6,6 +6,11 @@
 SALAH is a full-stack web application designed to bridge the gap between clients and legal experts. It transforms the traditional, time-consuming process of booking lawyer appointments into a seamless digital experience. Through real-time video conferencing and a custom "Pay-Per-Minute" wallet system, SALAH guarantees financial transparency for clients and automated, fair compensation for lawyers.
 
 ---
+## Demo-Video
+
+https://github.com/user-attachments/assets/2b602e2c-2f37-4ef0-ab64-9e1b70671d54
+
+
 
 ## ✨ Key Features
 
@@ -132,3 +137,6 @@ While SALAH is currently a fully functional MVP, we have exciting plans for futu
 
 
 *“Justice delayed is justice denied. We built SALAH to make sure neither happens.”* ⚖️
+
+
+
