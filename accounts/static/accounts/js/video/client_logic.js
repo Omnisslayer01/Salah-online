@@ -137,13 +137,11 @@ document.addEventListener("DOMContentLoaded", function() {
         const currentCost = calculateCost();
         const remaining = BALANCE - currentCost;
 
-        // Warning if balance gets low
         if (remaining < (RATE * 2) && !state.warningShown && remaining > 0) {
             showToast("⚠️ Low Balance Warning");
             state.warningShown = true;
         }
         
-        // Cut call if money runs out
         if (currentCost >= BALANCE) {
             call.leave();
             alert("Balance Exhausted.");
@@ -151,17 +149,11 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function calculateCost() {
-        const FIXED_FEE = 30;     // The fixed "Base Charge"
-        const FREE_SECONDS = 20;  // 2 Minutes Trial
+        const FIXED_FEE = 30;     
+        const FREE_SECONDS = 20;  
 
-        // 1. Calculate billable time (Total time minus the 2 free minutes)
-        // If seconds is 60, result is 0. If seconds is 130, result is 10.
         const billableDuration = Math.max(0, state.seconds - FREE_SECONDS);
-
-        // 2. Calculate the variable cost based on the rate
         const variableCost = billableDuration * (RATE / 60);
-
-        // 3. Total = Fixed Fee + Variable Cost
         return (FIXED_FEE + variableCost).toFixed(2);
     }
 

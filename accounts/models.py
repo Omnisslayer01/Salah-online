@@ -72,7 +72,7 @@ class Rating(models.Model):
         return f"{self.lawyer.username} - {self.score}⭐"
 
 # --------------------
-# WALLET SYSTEM (Moved here!)
+# WALLET SYSTEM 
 # --------------------
 class Wallet(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='wallet')

@@ -121,16 +121,13 @@ STATICFILES_DIRS = [
     BASE_DIR / "accounts/static",
 ]
 
-from django.conf import settings
-from django.conf.urls.static import static
-
 AUTH_USER_MODEL = 'accounts.User'
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 
-DAILY_API_KEY = "3f176e1ba53395d25ff899af893e7a76a35fbbd49fe22aa9915edec6d8b36d76"
+DAILY_API_KEY = "46fdacb20553bc636796205f3083d0928950cb540474bbefd7fdab282cc33f05"
 DAILY_SUBDOMAIN = "salah-online"
 
 
