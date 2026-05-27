@@ -167,8 +167,7 @@ def lawyer_dashboard(request):
     ).aggregate(total=Sum('amount_paid'))
     today_earnings = earnings_data['total'] or 0
 
-    # 3. RATING LOGIC (THE FIX)
-    # We fetch all ratings for this lawyer and calculate the average
+    # 3. RATING LOGIC (FIXED now)
     ratings_data = Rating.objects.filter(lawyer=request.user).aggregate(avg=Avg('score'))
     average_rating = ratings_data['avg'] or 0.0
 
@@ -196,9 +195,40 @@ def lawyer_profile(request):
         return redirect("lawyer_profile")
     return render(request, "accounts/lawyer/profile.html", {"profile": profile})
 
+
 @login_required
 def lawyer_earnings(request):
-    return render(request, "accounts/lawyer/earnings.html")
+    # 1. Ensure Wallet Exists
+    wallet, _ = Wallet.objects.get_or_create(user=request.user)
+    
+    # 2. Get Transaction History
+    transactions = wallet.transactions.all().order_by('-created_at')
+
+    # 3. Calculate Today's Earnings
+    today = timezone.now().date()
+    today_earnings_data = ConsultationRequest.objects.filter(
+        lawyer=request.user,
+        status='completed',
+        created_at__date=today
+    ).aggregate(total=Sum('amount_paid'))
+    today_sum = today_earnings_data['total'] or 0
+
+    # 4. Calculate This Month's Earnings
+    month_earnings_data = ConsultationRequest.objects.filter(
+        lawyer=request.user,
+        status='completed',
+        created_at__year=today.year,
+        created_at__month=today.month
+    ).aggregate(total=Sum('amount_paid'))
+    month_sum = month_earnings_data['total'] or 0
+
+    # 5. Pass Data to Template
+    return render(request, "accounts/lawyer/earnings.html", {
+        "wallet": wallet,
+        "transactions": transactions,
+        "today_earnings": today_sum,
+        "month_earnings": month_sum,
+    })
 
 # =========================
 # UPDATE CONSULTATION (ACCEPT/REJECT + GENERATE ROOM ID)
@@ -245,7 +275,6 @@ def add_funds(request):
     if request.method == "POST":
         amount_str = request.POST.get("amount")
         try:
-            # Use Decimal for financial calculations
             amount = Decimal(amount_str)
             if amount > 0:
                 request.user.wallet.credit(amount, description="Added funds via Bank")
@@ -260,9 +289,6 @@ def add_funds(request):
 # =========================
 # VIDEO ROOM LOGIC (THE BRIDGE)
 # =========================
-# accounts/views.py
-
-# accounts/views.py
 
 @login_required
 def join_room(request, room_id):
@@ -309,21 +335,19 @@ def join_room(request, room_id):
             "room_url": daily_url,
             "session_id": room_id,
             "balance": request.user.wallet.balance, 
-            "rate": 100 
+            "rate": 20 
         }
         
     else:
-        # If user is neither (hacking attempt), kick them out
         return redirect("home")
 
     return render(request, template, context)
 
-# ... (Previous imports remain) ...
 
 # =========================
 # END SESSION & TRANSFER MONEY
 # =========================
-@csrf_exempt  # We exempt CSRF for simplicity in this fetch request, or pass token in JS
+@csrf_exempt  
 @login_required
 def end_consultation_api(request):
     if request.method == "POST":
@@ -332,21 +356,17 @@ def end_consultation_api(request):
             room_id = data.get('room_id')
             amount = Decimal(data.get('amount'))
 
-            # 1. Get the Consultation Request
             consultation = get_object_or_404(ConsultationRequest, room_id=room_id)
 
-            # 2. Verify: Only the Client can trigger the payment (Security)
             if request.user != consultation.client:
                 return JsonResponse({"status": "error", "message": "Unauthorized"}, status=403)
 
-            # 3. Perform the Transaction
             client_wallet = consultation.client.wallet
             lawyer_wallet = consultation.lawyer.wallet
 
             if client_wallet.debit(amount, description=f"Consultation Fee: {consultation.lawyer.get_full_name()}"):
                 lawyer_wallet.credit(amount, description=f"Earnings: {consultation.client.get_full_name()}")
                 
-                # Mark as Completed
                 consultation.status = "completed"
                 consultation.amount_paid = amount
                 consultation.save()
@@ -360,10 +380,6 @@ def end_consultation_api(request):
 
     return JsonResponse({"status": "error", "message": "Invalid Method"}, status=405)
 
-
-# accounts/views.py
-
-# accounts/views.py
 
 @csrf_exempt
 @login_required
@@ -414,3 +430,4 @@ def view_case_brief(request, request_id):
     return render(request, "accounts/lawyer/request_detail.html", {
         "req": consultation_req
     })
+

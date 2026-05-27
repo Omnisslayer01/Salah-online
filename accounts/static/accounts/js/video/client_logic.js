@@ -125,8 +125,14 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function processBilling() {
-        if (state.seconds <= 120) { els.status.innerText = "Free Intro"; return; }
-        if (!state.billingActive) { state.billingActive = true; showToast("Billing Started"); }
+        // Only show "Free Intro" label if you consider the Fixed Fee to include the intro.
+        // If you are charging the Fixed Fee immediately, you might want to remove the "Free Intro" text check
+        // or change the text to "Base Charge Active".
+        
+        // Ensure billing starts tracking
+        if (!state.billingActive) { 
+            state.billingActive = true; 
+        }
         
         const currentCost = calculateCost();
         const remaining = BALANCE - currentCost;
@@ -135,6 +141,7 @@ document.addEventListener("DOMContentLoaded", function() {
             showToast("⚠️ Low Balance Warning");
             state.warningShown = true;
         }
+        
         if (currentCost >= BALANCE) {
             call.leave();
             alert("Balance Exhausted.");
@@ -142,8 +149,12 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function calculateCost() {
-        const billable = Math.max(0, state.seconds - 120);
-        return (billable * (RATE / 60)).toFixed(2);
+        const FIXED_FEE = 30;     
+        const FREE_SECONDS = 20;  
+
+        const billableDuration = Math.max(0, state.seconds - FREE_SECONDS);
+        const variableCost = billableDuration * (RATE / 60);
+        return (FIXED_FEE + variableCost).toFixed(2);
     }
 
     function updateUI() {
