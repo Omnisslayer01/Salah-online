@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 from django.utils import timezone
-
 # --------------------
 # Custom User
 # --------------------
@@ -57,6 +56,10 @@ class ConsultationRequest(models.Model):
     room_id = models.CharField(max_length=100, blank=True, null=True)
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     created_at = models.DateTimeField(auto_now_add=True)
+    ai_refined_description=models.TextField(blank=True,null=True)
+    estimated_cost=models.DecimalField(max_digits=10,null=True,blank=True,decimal_places=2)
+    estimated_duration=models.IntegerField(blank=True,null=True)
+    ai_client_checklist=models.JSONField(blank=True,null=True)
 
 # --------------------
 # Rating

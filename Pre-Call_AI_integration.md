@@ -4,7 +4,7 @@
 
 ---
 
-### 🗄️ Step 1: Database Updates (Assigned to: Tarim)
+### 🗄️ Step 1: Database Updates (Assigned to: Diyan)  ✅ Task completed
 **Target File:** `accounts/models.py`
 **Goal:** Update the existing `ConsultationRequest` model to store the new AI-generated insights.
 
@@ -19,7 +19,7 @@ class ConsultationRequest(models.Model):
     
     # NEW AI FIELDS
     ai_refined_description = models.TextField(blank=True, null=True)
-    estimated_cost = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    estimated_cost = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True) 
     estimated_duration = models.IntegerField(blank=True, null=True) # In minutes
     ai_client_checklist = models.JSONField(blank=True, null=True) # Stores list of questions
 ```
