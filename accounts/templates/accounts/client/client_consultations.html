@@ -306,8 +306,11 @@
             color: #ccc;
             font-size: 13px;
             line-height: 1.8;
-            white-space: pre-wrap;
+            white-space: pre-line;
             font-family: 'Courier New', monospace;
+            padding: 10px;
+            background: #0a0a0a;
+            border-radius: 6px;
         }
 
         .transcript-empty {
@@ -317,13 +320,8 @@
             padding: 20px;
         }
 
-        .speaker-client {
-            color: #4caf50;
-            font-weight: bold;
-        }
-
-        .speaker-lawyer {
-            color: #2196f3;
+        /* Style speaker labels in transcript */
+        .transcript-text::first-line {
             font-weight: bold;
         }
 
