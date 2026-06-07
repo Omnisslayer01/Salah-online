@@ -342,14 +342,8 @@
 
             <!-- Transcript Section -->
             {% if req.status == 'completed' or req.status == 'accepted' %}
-                {% if req.transcript_status == 'processing' %}
-                    <!-- Show Processing Indicator -->
-                    <div class="transcript-processing">
-                        <div class="spinner"></div>
-                        <span class="processing-text">🎙️ Transcribing audio... This may take a moment.</span>
-                    </div>
-                {% elif req.transcript_status == 'completed' and req.call_transcript %}
-                    <!-- Show Completed Transcript -->
+                {% if req.call_transcript %}
+                    <!-- Show Completed Transcript (exists in database) -->
                     <div class="transcript-section">
                         <div class="transcript-header" onclick="toggleTranscript(this)">
                             <div class="transcript-title">
@@ -362,13 +356,19 @@
                             <div class="transcript-text">{{ req.call_transcript|linebreaksbr }}</div>
                         </div>
                     </div>
+                {% elif req.transcript_status == 'processing' %}
+                    <!-- Show Processing Indicator -->
+                    <div class="transcript-processing">
+                        <div class="spinner"></div>
+                        <span class="processing-text">🎙️ Transcribing audio... This may take a moment.</span>
+                    </div>
                 {% elif req.transcript_status == 'failed' %}
                     <!-- Show Error State -->
                     <div class="transcript-pending">
                         ⚠️ Transcription failed. Please contact support.
                     </div>
-                {% elif req.transcript_status == 'pending' %}
-                    <!-- Show Pending State -->
+                {% else %}
+                    <!-- Show Pending State (default) -->
                     <div class="transcript-pending">
                         ⏳ Transcript will be available after the consultation call.
                     </div>
