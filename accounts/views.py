@@ -3,13 +3,14 @@ from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from decimal import Decimal
-import uuid  
-import requests  
+import uuid
+import requests
 import time
-from django.conf import settings 
+from django.conf import settings
 import json
+import os
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt    
+from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Sum, Avg
 from django.utils import timezone
 from groq import Groq
@@ -135,7 +136,15 @@ def request_consultation(request, lawyer_id):
         ai_refined_description = request.POST.get("ai_refined_description")
         estimated_cost = request.POST.get("estimated_cost") or None
         estimated_duration = request.POST.get("estimated_duration") or None
-        ai_client_checklist = request.POST.get("ai_client_checklist")
+        
+        # Parse JSON string to Python object for JSONField
+        ai_client_checklist_raw = request.POST.get("ai_client_checklist")
+        ai_client_checklist = None
+        if ai_client_checklist_raw:
+            try:
+                ai_client_checklist = json.loads(ai_client_checklist_raw)
+            except json.JSONDecodeError:
+                ai_client_checklist = None  # Fallback if JSON is invalid
 
         # WALLET VERIFICATION: Ensure user has sufficient balance
         if estimated_cost:
@@ -450,7 +459,7 @@ def join_room(request, room_id):
                 "name": room_id,
                 "properties": {
                     "enable_chat": True, "start_video_off": False, "start_audio_off": False,
-                    "exp": int(time.time() + 7200) 
+                    "exp": int(time.time() + 7200)
                 }
             }
         )
@@ -459,7 +468,10 @@ def join_room(request, room_id):
 
     daily_url = f"https://{settings.DAILY_SUBDOMAIN}.daily.co/{room_id}"
 
-    # 3. STRICT ROUTING LOGIC
+    # 3. Extract AI-generated questions (if they exist)
+    questions = consultation.ai_client_checklist or []
+
+    # 4. STRICT ROUTING LOGIC
     # Check if the logged-in user is specifically the LAWYER for this case
     if request.user == consultation.lawyer:
         template = "accounts/video/lawyer_room.html"
@@ -474,13 +486,14 @@ def join_room(request, room_id):
         context = {
             "room_url": daily_url,
             "session_id": room_id,
-            "balance": request.user.wallet.balance, 
-            "rate": 20 
+            "balance": request.user.wallet.balance,
+            "rate": 20,
+            "questions": questions  # Pass questions to template
         }
         
     else:
         return redirect("home")
-
+    
     return render(request, template, context)
 
 
@@ -556,6 +569,113 @@ def rate_lawyer_api(request):
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
     return JsonResponse({"status": "error"}, status=400)
+
+
+# =========================
+# AUDIO PROCESSING WITH GROQ WHISPER
+# =========================
+@csrf_exempt
+@login_required
+def process_audio_api(request):
+    """
+    Receives audio file from client/lawyer, transcribes with Groq Whisper,
+    and appends transcript to consultation record.
+    """
+    if request.method == "POST":
+        try:
+            # Debug logging
+            print(f"[DEBUG] POST data keys: {list(request.POST.keys())}")
+            print(f"[DEBUG] FILES keys: {list(request.FILES.keys())}")
+            print(f"[DEBUG] Content-Type: {request.content_type}")
+            
+            audio_file = request.FILES.get('audio_file')
+            room_id = request.POST.get('room_id')
+            
+            print(f"[DEBUG] audio_file: {audio_file}")
+            print(f"[DEBUG] room_id: {room_id}")
+            
+            if not audio_file or not room_id:
+                return JsonResponse({
+                    "status": "error",
+                    "message": f"Missing audio_file ({bool(audio_file)}) or room_id ({bool(room_id)})",
+                    "debug": {
+                        "post_keys": list(request.POST.keys()),
+                        "files_keys": list(request.FILES.keys())
+                    }
+                }, status=400)
+            
+            # Get consultation
+            consultation = get_object_or_404(ConsultationRequest, room_id=room_id)
+            
+            # Verify user is part of this consultation
+            if request.user not in [consultation.client, consultation.lawyer]:
+                return JsonResponse({
+                    "status": "error",
+                    "message": "Unauthorized"
+                }, status=403)
+            
+            # Save temporary audio file
+            temp_filename = f"temp_{room_id}_{request.user.id}_{int(time.time())}.webm"
+            temp_path = os.path.join(settings.MEDIA_ROOT, temp_filename)
+            
+            # Ensure media directory exists
+            os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
+            
+            with open(temp_path, 'wb+') as f:
+                for chunk in audio_file.chunks():
+                    f.write(chunk)
+            
+            # Transcribe with Groq Whisper
+            client = Groq(api_key=settings.GROQ_API_KEY)
+            
+            with open(temp_path, "rb") as file:
+                transcription = client.audio.transcriptions.create(
+                    file=(temp_filename, file.read()),
+                    model="whisper-large-v3",
+                    response_format="text",
+                    language="en"  # Can be changed to "hi" for Hindi or removed for auto-detect
+                )
+            
+            # Determine speaker role
+            speaker_role = "CLIENT" if request.user == consultation.client else "LAWYER"
+            
+            # Append transcript to consultation
+            existing_transcript = consultation.call_transcript or ""
+            new_transcript = f"\n\n[{speaker_role}]:\n{transcription}"
+            consultation.call_transcript = existing_transcript + new_transcript
+            consultation.save()
+            
+            # Cleanup temporary file
+            try:
+                os.remove(temp_path)
+            except Exception as e:
+                print(f"Warning: Could not delete temp file {temp_path}: {e}")
+            
+            return JsonResponse({
+                "status": "success",
+                "message": "Audio transcribed successfully",
+                "speaker": speaker_role,
+                "transcript_length": len(transcription)
+            })
+            
+        except Exception as e:
+            # Cleanup temp file on error
+            if 'temp_path' in locals() and os.path.exists(temp_path):
+                try:
+                    os.remove(temp_path)
+                except:
+                    pass
+            
+            return JsonResponse({
+                "status": "error",
+                "message": str(e)
+            }, status=500)
+    
+    return JsonResponse({
+        "status": "error",
+        "message": "Invalid method"
+    }, status=405)
+
 
 @login_required
 def view_case_brief(request, request_id):

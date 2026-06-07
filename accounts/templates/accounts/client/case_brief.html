@@ -65,7 +65,7 @@
         <!-- Basic Form Fields -->
         <div>
             <label>Case Category</label>
-            <select name="category" required>
+            <select class="input-animate" class="input-animate" name="category" required>
                 <option value="">Select Category</option>
                 {% for c in categories %}
                     <option value="{{ c.id }}">{{ c.name }}</option>
@@ -74,7 +74,7 @@
         </div>
         <div>
             <label>Case Subject</label>
-            <input type="text" name="subject" placeholder="e.g. Landlord refusing to return deposit" required>
+            <input type="text" class="input-animate" class="input-animate" name="subject" placeholder="e.g. Landlord refusing to return deposit" required>
         </div>
         <div>
             <label>When did the issue start?</label>
@@ -82,19 +82,19 @@
         </div>
         <div>
             <label>Opposing Party</label>
-            <input type="text" name="opposing_party" placeholder="e.g. Employer, Builder, State">
+            <input type="text" class="input-animate" class="input-animate" name="opposing_party" placeholder="e.g. Employer, Builder, State">
         </div>
         <div>
             <label>Current Status</label>
-            <input type="text" name="current_status" placeholder="Just started / Ongoing / Urgent">
+            <input type="text" class="input-animate" class="input-animate" name="current_status" placeholder="Just started / Ongoing / Urgent">
         </div>
         <div>
             <label>Desired Outcome</label>
-            <input type="text" name="desired_outcome" placeholder="e.g. Refund, Compensation">
+            <input type="text" class="input-animate" class="input-animate" name="desired_outcome" placeholder="e.g. Refund, Compensation">
         </div>
         <div class="full-width">
             <label>Detailed Description</label>
-            <textarea name="description" placeholder="Explain your case in detail..." required></textarea>
+            <textarea class="input-animate" class="input-animate" name="description" placeholder="Explain your case in detail..." required></textarea>
         </div>
         <div class="full-width upload-box">
             <label>Upload Documents (optional)</label>
@@ -121,7 +121,7 @@
 
             <!-- Single Input Box for Replies -->
             <div id="ai-action-area" style="display: none; margin-top: 15px;">
-                <input type="text" id="user-reply-input" placeholder="Type your answer..." style="margin-bottom: 10px;">
+                <input type="text" class="input-animate" class="input-animate" id="user-reply-input" placeholder="Type your answer..." style="margin-bottom: 10px;">
                 <button type="button" id="submit-additional-info" class="gold-btn" style="width: 100%;">
                     Reply to AI
                 </button>

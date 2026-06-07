@@ -5,7 +5,10 @@
     <meta charset="UTF-8">
     <title>Case Details | SALAH</title>
     <!-- Professional Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">    
+    <!-- Animation CSS -->
+    <link rel="stylesheet" href="{% static 'accounts/css/animations.css' %}">
+
     
     <style>
         /* ===== CSS VARIABLES (Matched to System) ===== */
@@ -291,7 +294,7 @@
 </head>
 <body>
 
-    <header class="navbar">
+    <header class="navbar navbar-animate">
         <div class="nav-inner">
             <div class="logo">⚖ SALAH <span style="font-size:0.7em; opacity:0.7;">(Expert)</span></div>
             <nav>
@@ -300,8 +303,8 @@
                 <a href="{% url 'lawyer_earnings' %}">Earnings</a>
                 <a href="{% url 'lawyer_profile' %}">Profile</a>
                 <a href="{% url 'wallet' %}" class="wallet-pill">₹{{ user.wallet.balance|default:"0" }}</a>
-                <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
-                <a href="#" class="btn btn-small btn-filled">Contact</a>
+                <a href="{% url 'logout' %}" class="btn-logout btn-animate">Logout</a>
+                <a href="#" class="btn btn-small btn-filled btn-animate">Contact</a>
             </nav>
         </div>
     </header>
@@ -309,7 +312,7 @@
     <div class="container">
         <div class="detail-card">
             <div class="header-row">
-                <h1>Case Brief Review</h1>
+                <h1 class="animate-fade-in-down">Case Brief Review</h1>
                 <a href="{% url 'lawyer_dashboard' %}" class="back-link">← Back to Dashboard</a>
             </div>
 
@@ -401,8 +404,8 @@
             <!-- ACTIONS -->
             <div class="actions">
                 {% if req.status == 'pending' %}
-                    <a href="{% url 'update_consultation_status' req.id 'reject' %}" class="btn btn-action btn-reject">Decline Case</a>
-                    <a href="{% url 'update_consultation_status' req.id 'accept' %}" class="btn btn-action btn-accept">Accept & Create Room</a>
+                    <a href="{% url 'update_consultation_status' req.id 'reject' %}" class="btn btn-action btn-reject btn-animate">Decline Case</a>
+                    <a href="{% url 'update_consultation_status' req.id 'accept' %}" class="btn btn-action btn-accept btn-animate">Accept & Create Room</a>
                 {% else %}
                     <div style="text-align: center; width: 100%; color: var(--text-gray); padding: 10px; background: #222; border-radius: 8px;">
                         Status: <strong style="color: #fff; text-transform: uppercase;">{{ req.status }}</strong>

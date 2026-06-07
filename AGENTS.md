@@ -13,8 +13,14 @@ This file provides guidance to agents when working with code in this repository.
 ### Video Consultation Billing
 - Billing starts AFTER 2-minute grace period (hardcoded in client_logic.js)
 - Session state persists in localStorage with key pattern `salah_session_{SESSION_ID}` - enables page refresh without losing timer
-- Payment processing happens in [`left-meeting`](accounts/static/accounts/js/video/client_logic.js:72) event, NOT on button click
+- Payment processing happens in [`left-meeting`](accounts/static/accounts/js/video/client_logic.js:250) event, NOT on button click
 - Room creation via Daily.co API silently fails if room exists (intentional, see [`join_room`](accounts/views.py:379))
+
+### Y-Splitter Audio Recording (Critical Implementation Detail)
+- Audio recording uses `navigator.mediaDevices.getUserMedia()` directly, NOT Daily.co's `participants.local.tracks.audio.track` (which returns undefined)
+- MediaRecorder MUST be started with timeslice parameter: `audioRecorder.start(1000)` - without it, `ondataavailable` never fires and no chunks are collected
+- Mute sync polls Daily.co state every 500ms using `call.localAudio()` and pauses/resumes MediaRecorder accordingly
+- Audio upload happens in `left-meeting` event with 2-second wait for async upload completion
 
 ### Authentication & Routing
 - Username field stores email (see [`signup_view`](accounts/views.py:54): `username=email`)
@@ -27,6 +33,7 @@ This file provides guidance to agents when working with code in this repository.
 
 ### Environment Configuration
 - Daily.co credentials required: `DAILY_API_KEY`, `DAILY_SUBDOMAIN`
+- Groq API key required for audio transcription: `GROQ_API_KEY`
 - CSRF_TRUSTED_ORIGINS includes ngrok patterns for local HTTPS testing (WebRTC requirement)
 - DEBUG mode controlled by string comparison: `os.getenv("DEBUG") == "True"` (not boolean)
 

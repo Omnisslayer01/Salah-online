@@ -5,7 +5,10 @@
     <meta charset="UTF-8">
     <title>My Consultations | SALAH</title>
     <!-- Professional Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">    
+    <!-- Animation CSS -->
+    <link rel="stylesheet" href="{% static 'accounts/css/animations.css' %}">
+
     
     <style>
         /* ===== CSS VARIABLES (Matched to System) ===== */
@@ -177,11 +180,84 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(216, 156, 58, 0.3);
         }
+
+        /* Transcript Section */
+        .transcript-section {
+            margin-top: 15px;
+            padding: 15px;
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+        }
+
+        .transcript-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 10px;
+            background: #151515;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+
+        .transcript-header:hover {
+            background: #1a1a1a;
+        }
+
+        .transcript-title {
+            font-weight: 600;
+            color: var(--primary-gold);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .transcript-toggle {
+            color: #888;
+            font-size: 20px;
+            transition: transform 0.3s;
+        }
+
+        .transcript-toggle.open {
+            transform: rotate(180deg);
+        }
+
+        .transcript-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .transcript-content.open {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .transcript-text {
+            color: #ccc;
+            font-size: 13px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+        }
+
+        .speaker-client {
+            color: #4caf50;
+            font-weight: bold;
+        }
+
+        .speaker-lawyer {
+            color: #2196f3;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
-    <header class="navbar">
+    <header class="navbar navbar-animate">
         <div class="nav-inner">
             <div class="logo">⚖ SALAH <span style="font-size:0.7em; opacity:0.7;">(Expert)</span></div>
             <nav>
@@ -190,40 +266,73 @@
                 <a href="{% url 'lawyer_earnings' %}">Earnings</a>
                 <a href="{% url 'lawyer_profile' %}">Profile</a>
                 <a href="{% url 'wallet' %}" class="wallet-pill">₹{{ user.wallet.balance|default:"0" }}</a>
-                <a href="{% url 'logout' %}" class="btn-logout">Logout</a>        
-                <a href="#" class="btn btn-small btn-filled">Contact</a>
+                <a href="{% url 'logout' %}" class="btn-logout btn-animate">Logout</a>        
+                <a href="#" class="btn btn-small btn-filled btn-animate">Contact</a>
             </nav>
         </div>
     </header>
 
     <div class="container">
-        <h1 style="margin-bottom: 30px;">My Consultations</h1>
+        <h1 style="margin-bottom: 30px;" class="animate-fade-in-down">My Consultations</h1>
 
         {% for req in requests %}
-        <div class="consultation-card">
-            <div>
-                <h3>{{ req.client.get_full_name|default:req.client.username }}</h3>
-                <p>Subject: {{ req.subject }}</p>
-                <p style="font-size:0.8rem; margin-top:5px;">{{ req.created_at|date:"M d, Y" }}</p>
-            </div>
-            
-            <div>
-                {% if req.status == 'accepted' %}
-                    <a href="{% url 'join_room' req.room_id %}" class="btn-start">Start Video Call</a>
-                {% else %}
-                    <span class="status-badge {{ req.status }}">{{ req.status }}</span>
-                    {% if req.status == 'completed' %}
-                    <div style="margin-top:5px; text-align:right; color:#2ecc71; font-weight:bold; font-size:0.9rem;">
-                        + ₹{{ req.amount_paid }}
-                    </div>
+        <div class="consultation-card card-animate hover-lift animate-fade-in" style="flex-direction: column; align-items: stretch;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3>{{ req.client.get_full_name|default:req.client.username }}</h3>
+                    <p>Subject: {{ req.subject }}</p>
+                    <p style="font-size:0.8rem; margin-top:5px;">{{ req.created_at|date:"M d, Y" }}</p>
+                </div>
+                
+                <div>
+                    {% if req.status == 'accepted' %}
+                        <a href="{% url 'join_room' req.room_id %}" class="btn-start btn-animate">Start Video Call</a>
+                    {% else %}
+                        <span class="status-badge {{ req.status }}">{{ req.status }}</span>
+                        {% if req.status == 'completed' %}
+                        <div style="margin-top:5px; text-align:right; color:#2ecc71; font-weight:bold; font-size:0.9rem;">
+                            + ₹{{ req.amount_paid }}
+                        </div>
+                        {% endif %}
                     {% endif %}
-                {% endif %}
+                </div>
             </div>
+
+            <!-- Transcript Section (only show if call_transcript exists) -->
+            {% if req.call_transcript %}
+            <div class="transcript-section">
+                <div class="transcript-header" onclick="toggleTranscript(this)">
+                    <div class="transcript-title">
+                        <span>📝</span>
+                        <span>Call Transcript & Summary</span>
+                    </div>
+                    <div class="transcript-toggle">▼</div>
+                </div>
+                <div class="transcript-content">
+                    <div class="transcript-text">{{ req.call_transcript|linebreaksbr }}</div>
+                </div>
+            </div>
+            {% endif %}
         </div>
         {% empty %}
         <p style="text-align:center; color:var(--text-gray);">No consultation history found.</p>
         {% endfor %}
     </div>
+
+<script>
+function toggleTranscript(header) {
+    const content = header.nextElementSibling;
+    const toggle = header.querySelector('.transcript-toggle');
+    
+    if (content.classList.contains('open')) {
+        content.classList.remove('open');
+        toggle.classList.remove('open');
+    } else {
+        content.classList.add('open');
+        toggle.classList.add('open');
+    }
+}
+</script>
 
 </body>
 </html>
