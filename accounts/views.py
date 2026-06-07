@@ -614,6 +614,10 @@ def process_audio_api(request):
                     "message": "Unauthorized"
                 }, status=403)
             
+            # Set status to processing
+            consultation.transcript_status = 'processing'
+            consultation.save()
+            
             # Save temporary audio file
             temp_filename = f"temp_{room_id}_{request.user.id}_{int(time.time())}.webm"
             temp_path = os.path.join(settings.MEDIA_ROOT, temp_filename)
@@ -643,6 +647,7 @@ def process_audio_api(request):
             existing_transcript = consultation.call_transcript or ""
             new_transcript = f"\n\n[{speaker_role}]:\n{transcription}"
             consultation.call_transcript = existing_transcript + new_transcript
+            consultation.transcript_status = 'completed'
             consultation.save()
             
             # Cleanup temporary file

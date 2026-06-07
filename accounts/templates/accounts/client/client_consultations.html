@@ -326,6 +326,48 @@
             color: #2196f3;
             font-weight: bold;
         }
+
+        /* Processing Status Styles */
+        .transcript-processing {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid #2a2a2a;
+            border-top-color: var(--primary-gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .processing-text {
+            color: var(--primary-gold);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .transcript-pending {
+            color: #666;
+            font-style: italic;
+            text-align: center;
+            padding: 15px;
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
@@ -383,20 +425,39 @@
             </div>
         </div>
 
-        <!-- Transcript Section (only show if call_transcript exists) -->
-        {% if req.call_transcript %}
-        <div class="transcript-section">
-            <div class="transcript-header" onclick="toggleTranscript(this)">
-                <div class="transcript-title">
-                    <span>📝</span>
-                    <span>Call Transcript & Summary</span>
+        <!-- Transcript Section -->
+        {% if req.status == 'completed' or req.status == 'accepted' %}
+            {% if req.transcript_status == 'processing' %}
+                <!-- Show Processing Indicator -->
+                <div class="transcript-processing">
+                    <div class="spinner"></div>
+                    <span class="processing-text">🎙️ Transcribing audio... This may take a moment.</span>
                 </div>
-                <div class="transcript-toggle">▼</div>
-            </div>
-            <div class="transcript-content">
-                <div class="transcript-text">{{ req.call_transcript|linebreaksbr }}</div>
-            </div>
-        </div>
+            {% elif req.transcript_status == 'completed' and req.call_transcript %}
+                <!-- Show Completed Transcript -->
+                <div class="transcript-section">
+                    <div class="transcript-header" onclick="toggleTranscript(this)">
+                        <div class="transcript-title">
+                            <span>📝</span>
+                            <span>Call Transcript & Summary</span>
+                        </div>
+                        <div class="transcript-toggle">▼</div>
+                    </div>
+                    <div class="transcript-content">
+                        <div class="transcript-text">{{ req.call_transcript|linebreaksbr }}</div>
+                    </div>
+                </div>
+            {% elif req.transcript_status == 'failed' %}
+                <!-- Show Error State -->
+                <div class="transcript-pending">
+                    ⚠️ Transcription failed. Please contact support.
+                </div>
+            {% elif req.transcript_status == 'pending' %}
+                <!-- Show Pending State -->
+                <div class="transcript-pending">
+                    ⏳ Transcript will be available after the consultation call.
+                </div>
+            {% endif %}
         {% endif %}
     </div>
     {% empty %}

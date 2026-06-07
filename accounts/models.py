@@ -75,6 +75,16 @@ class ConsultationRequest(models.Model):
 
     # 5. PHASE 3 (POST-CALL) AI FIELDS
     call_transcript = models.TextField(blank=True, null=True)
+    transcript_status = models.CharField(
+        max_length=20,
+        choices=[
+            ('pending', 'Pending'),
+            ('processing', 'Processing'),
+            ('completed', 'Completed'),
+            ('failed', 'Failed')
+        ],
+        default='pending'
+    )
     ai_call_summary = models.TextField(blank=True, null=True)
     ai_execution_plan = models.JSONField(blank=True, null=True)
     ai_drafted_document = models.TextField(blank=True, null=True)
